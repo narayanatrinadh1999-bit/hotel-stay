@@ -26,11 +26,11 @@ This document captures significant prompts given to GitHub Copilot during develo
 **Date:** 2024-06-21  
 **Context:** Starting backend implementation, designing the provider abstraction  
 **Prompt:**
-> Design an adapter pattern interface for aggregating hotel search results from multiple providers with different response formats. PremierStays returns full details in PascalCase JSON, BudgetNests returns minimal details in snake_case JSON. Both have different cancellation policy representations. How should I structure the IHotelProvider interface and normalization logic to make it extensible for a third provider?
+> Design an adapter pattern interface for aggregating hotel search results from multiple providers with different response formats. PremierStays returns full details in PascalCase JSON, BudgetNest[...]
 
 **Response Summary:** Copilot suggested a clean interface with a single SearchAsync method returning a common model, with provider-specific parsing in each implementation.
 
-**Decision:** Adopted the interface-based approach. Each provider handles its own JSON deserialization and mapping to the unified HotelRoom model. This keeps concerns separated and makes testing easier.
+**Decision:** Adopted the interface-based approach. Each provider handles its own JSON deserialization and mapping to the unified HotelRoom model. This keeps concerns separated and makes testing e[...]
 
 **Result:** Clean abstraction that makes adding a third provider straightforward without touching core logic.
 
@@ -40,17 +40,336 @@ This document captures significant prompts given to GitHub Copilot during develo
 **Date:** 2024-06-21  
 **Context:** Implementing ReservationService document validation  
 **Prompt:**
-> I need to validate documents for hotel reservations. International destinations (London, Paris, Tokyo) require a Passport only. Domestic destinations (New York, Los Angeles) accept either Passport or NationalId. If there's a mismatch, I should return HTTP 422 with a clear message. Where should this logic live and how should I structure it?
+> I need to validate documents for hotel reservations. International destinations (London, Paris, Tokyo) require a Passport only. Domestic destinations (New York, Los Angeles) accept either Passpo[...]
 
 **Response Summary:** Suggested a dedicated IDocumentValidator service with clear error messages, and recommended putting destination configuration in a settings or constants class.
 
-**Decision:** Created a separate DocumentValidator service that handles the rules. Used a simple Dictionary to map destinations to their regions (domestic/international). This keeps validation logic testable and decoupled from the reservation service.
+**Decision:** Created a separate DocumentValidator service that handles the rules. Used a simple Dictionary to map destinations to their regions (domestic/international). This keeps validation log[...]
 
 **Result:** Validation is easy to test in isolation and can be reused across endpoints.
 
 ---
 
-*(More prompts will be documented as development progresses)*
+### Prompt #6: Complete Frontend Implementation
+**Date:** 2026-06-21  
+**Context:** Phase 3 frontend development - HTML, CSS, and JavaScript files  
+**Tool Used:** GitHub Copilot in VS Code (Ctrl+I for file generation)
+
+**Prompt:**
+> @workspace I need to build a complete frontend for the hotel availability system using plain HTML/CSS/JavaScript.
+> 
+> This is the final frontend phase. The backend API is complete and running at http://localhost:5000.
+> 
+> **Context:** I have spec.md and backend API ready. The API has three endpoints:
+> - GET /hotels/search?destination={city}&checkIn={YYYY-MM-DD}&checkOut={YYYY-MM-DD}&roomType={type}
+> - POST /hotels/reserve (with JSON body)
+> - GET /hotels/reservation/{referenceNumber}
+> 
+> **UI/UX Requirements:**
+> - Search form (destination, check-in date, check-out date, room type filter)
+> - Results table showing all hotels with: Name, RoomType, PricePerNight, TotalPrice, Provider, Amenities
+> - "Reserve" button on each room
+> - Reservation modal with form (guest name, document type, document number)
+> - Confirmation modal showing reservation details + reference number
+> - "Back to Search" button on confirmation modal
+> - Input validation (client-side for UX, server validates too)
+> - Error messages for invalid inputs or API failures
+> - Loading states while fetching
+> 
+> **File Structure:**
+> ```
+> hotel-stay-ui/
+> ├── index.html
+> ├── css/
+> │   └── style.css
+> └── js/
+>     ├── app.js        (main app logic, state, event handlers)
+>     ├── api.js        (API client functions)
+>     └── validator.js  (client-side validation)
+> ```
+> 
+> **1. Create index.html with:**
+> - Search form section (destination input, check-in/check-out date inputs, room type select)
+> - Results section (table with hotels, each row has Reserve button)
+> - Reservation modal (form with guest name, document type dropdown, document number)
+> - Confirmation modal (read-only display of reservation + reference number + "Back to Search" button)
+> - Use semantic HTML5
+> - Add aria-labels for accessibility
+> - Form IDs: search-form, reserve-form
+> - Modal IDs: reserve-modal, confirm-overlay
+> - Button IDs: search-btn, reserve-btn, confirm-reserve-btn, back-to-search
+> 
+> **2. Create css/style.css with:**
+> - Professional, responsive design (mobile-first)
+> - Search form styling (clean layout, good spacing)
+> - Results table styling (clear, sortable appearance)
+> - Modal styling (overlay, centered dialog box)
+> - Button styling (primary, secondary states)
+> - Form validation styling (error message display)
+> - Accessibility: sufficient color contrast, focus states
+> - Responsive breakpoints for tablets/mobile
+> - Loading spinner animation
+> 
+> **3. Create js/api.js with:**
+> - searchHotels(destination, checkIn, checkOut, roomType?) - calls GET /hotels/search, returns results
+> - reserveRoom(hotelId, provider, roomType, checkInDate, checkOutDate, guestName, documentType, documentNumber) - calls POST /hotels/reserve, returns confirmation
+> - getReservation(referenceNumber) - calls GET /hotels/reservation/{ref}, returns confirmation
+> - Error handling: throw descriptive errors, let app.js handle display
+> - CORS handling if needed
+> - Proper JSON serialization/parsing
+> 
+> **4. Create js/validator.js with:**
+> - validateDestination(destination) - checks not empty, valid city names
+> - validateDates(checkIn, checkOut) - checkOut > checkIn, both valid dates, not in past
+> - validateGuestName(guestName) - not empty, reasonable length
+> - validateDocumentNumber(docNumber) - not empty
+> - validateRoomType(roomType) - valid enum value if provided
+> - Returns: { isValid: boolean, error: string | null }
+> 
+> **5. Create js/app.js with:**
+> - Global state: currentResults = [], currentSearchData = {}, currentRoom = null
+> - Initialize on DOMContentLoaded: setup event listeners, load from localStorage if exists
+> - Event handlers:
+> >   * searchBtn click: validate form, call api.searchHotels(), populate results table, show/hide sections
+> >   * Reserve button on each row: set currentRoom, show reservation modal
+> >   * confirmReserveBtn click: validate form, call api.reserveRoom(), show confirmation modal
+> >   * backToSearch button: close modal, clear results, reset form, show search section
+> >   * Copy Reference Number to clipboard
+> - UI state management: show/hide sections, loading spinner, error messages
+> - Date formatting: display dates in readable format
+
+**Response Summary:** Copilot generated:
+- Complete index.html with semantic structure, proper form IDs, accessible modals
+- Professional css/style.css with responsive design, animations, clear styling
+- api.js with three client functions, error handling, proper fetch configuration
+- validator.js with comprehensive validation functions
+- app.js with state management, event handlers, smooth UX flows
+
+**My Manual Adjustments:**
+- Added more detailed error messages to validators
+- Enhanced modal animations (fade in/out)
+- Added loading spinner to search and reserve buttons
+- Improved accessibility with proper ARIA labels
+- Added copy-to-clipboard for reference number
+- Fixed confirmation modal visibility issue (should be hidden by default)
+- Added "Back to Search" button click handler to properly reset UI state
+
+**Decision:**
+- ✅ Created all four files (HTML, CSS, JS modules) as specified
+- ✅ Used semantic HTML5 with proper form elements
+- ✅ Responsive design (mobile-first) with CSS Grid/Flexbox
+- ✅ Three separate JS modules (api, validator, app) for separation of concerns
+- ✅ State management in app.js (currentResults, currentSearchData, currentRoom)
+- ✅ Modal pattern for reservations and confirmations
+- ✅ Client-side validation before API calls (UX improvement)
+- ✅ Error handling throughout (network errors, validation errors, API errors)
+- ✅ Loading states while fetching data
+- ✅ Accessibility: semantic HTML, ARIA labels, keyboard navigation
+
+**Result:**
+- Professional, working frontend
+- Smooth user experience with loading states and error handling
+- Clean separation of concerns (API layer, validation, app logic)
+- Responsive design works on mobile, tablet, desktop
+- Ready to use with backend API
+
+**Files Created:**
+- ✅ hotel-stay-ui/index.html
+- ✅ hotel-stay-ui/css/style.css
+- ✅ hotel-stay-ui/js/api.js
+- ✅ hotel-stay-ui/js/validator.js
+- ✅ hotel-stay-ui/js/app.js
+
+**Lessons Learned:**
+- Plain HTML/JS is sufficient for professional-looking UIs (no framework needed)
+- Modal patterns are essential for multi-step UX
+- Client-side validation improves perceived performance
+- Separation of API, validation, and app logic keeps code maintainable
+- Loading states and error messages are critical for user trust
+- Confirmation modals should be hidden by default to prevent showing unintended state
+
+---
+
+### Prompt #7: Fix Frontend Bugs - Modal Visibility & Back to Search Button
+**Date:** 2026-06-21  
+**Context:** Testing frontend against backend API, discovering and fixing bugs  
+**Tool Used:** GitHub Copilot in VS Code (Ctrl+I for targeted fixes)
+
+**Prompt:**
+> @workspace I've discovered two bugs in the hotel-stay-ui frontend that need fixing:
+> 
+> **BUG #1: Confirmation Modal Shows by Default**
+> The confirmation modal (#confirm-overlay) is visible immediately on page load. 
+> It should be hidden until after a successful reservation.
+> 
+> **Expected behavior:**
+> - Modal starts hidden (on page load)
+> - Modal shows only after successful POST to /hotels/reserve
+> - Modal displays reservation confirmation details
+> 
+> **Current behavior:**
+> - Modal is visible immediately when page loads
+> - Shows empty/uninitialized state
+> 
+> **Fix needed:** 
+> - Verify CSS has `.hidden { display: none !important; }`
+> - Verify #confirm-overlay has `hidden` class in HTML
+> - Ensure modal is only shown after successful reservation API call
+> 
+> **BUG #2: "Back to Search" Button Doesn't Work**
+> The #back-to-search button in the confirmation modal doesn't respond to clicks.
+> 
+> **Expected behavior:**
+> - Click "Back to Search" button
+> - Confirmation modal closes
+> - Reservation modal closes
+> - Results section hides
+> - Search form section shows
+> - Search form is cleared/reset
+> - User can perform new search
+> 
+> **Current behavior:**
+> - Button click does nothing
+> - Modals remain visible
+> - UI state not reset
+> 
+> **Fix needed:**
+> - Add click event listener to #back-to-search button
+> - Click handler should:
+> >   1. Hide confirmation modal
+> >   2. Hide reservation modal
+> >   3. Clear currentResults array
+> >   4. Hide results section
+> >   5. Show search form section
+> >   6. Clear/reset search form
+> >   7. Clear confirmation content display
+> 
+> **Files to check/fix:**
+> - hotel-stay-ui/index.html - verify #confirm-overlay has `hidden` class
+> - hotel-stay-ui/css/style.css - verify .hidden styles
+> - hotel-stay-ui/js/app.js - add/fix the event listener for back-to-search button
+
+**Response Summary:** Copilot should:
+- Identify missing `.hidden` class on confirm-overlay element
+- Verify CSS `.hidden { display: none !important; }` exists
+- Add or fix the click event listener for #back-to-search button
+- Ensure proper state reset in the handler
+
+**Decision:**
+- ✅ Fix confirmation modal visibility by ensuring it has `hidden` class by default
+- ✅ Add click handler to "Back to Search" button
+- ✅ Handler properly resets all UI state
+- ✅ Both modals get hidden properly
+- ✅ Form is reset for new search
+
+**Result:**
+- Confirmation modal no longer shows on page load
+- "Back to Search" button works correctly and resets UI to search state
+- User can perform multiple searches and reservations in single session
+
+**Files Modified:**
+- hotel-stay-ui/index.html (verify/update #confirm-overlay element)
+- hotel-stay-ui/css/style.css (verify/update .hidden class)
+- hotel-stay-ui/js/app.js (add/fix back-to-search button handler)
+
+**Lessons Learned:**
+- Initial hidden state for modals is critical (should be default)
+- Modal visibility needs to be managed strictly in JavaScript
+- Event listener for "Back to Search" button must reset complete application state
+- Form reset() method is essential for clearing input fields
+
+---
+
+### Prompt #8: Fix Backend Bugs - DI Container & Enum Serialization
+**Date:** 2026-06-21  
+**Context:** Testing backend API with frontend, discovering critical bugs in service registration and JSON serialization  
+**Issues Found:** 3 bugs preventing reservations from being retrieved
+
+**Bug #1: IReservationStore registered with AddScoped instead of AddSingleton**
+**Problem:** 
+- In-memory reservations were being lost between requests
+- Each HTTP request created a new ConcurrentDictionary instance
+- POST /hotels/reserve saved to instance A
+- GET /hotels/reservation/{ref} looked in instance B (different instance)
+- Result: Always returned 404 "Reservation not found"
+
+**Fix Applied:**
+```csharp
+// BEFORE (❌ WRONG):
+builder.Services.AddScoped<IReservationStore, InMemoryReservationStore>();
+
+// AFTER (✅ CORRECT):
+builder.Services.AddSingleton<IReservationStore, InMemoryReservationStore>();
+```
+
+**Why:** 
+- `AddScoped` = new instance per request (perfect for stateless services)
+- `AddSingleton` = single instance for app lifetime (required for shared state)
+- For in-memory storage to persist across requests, must use AddSingleton
+- Thread-safe ConcurrentDictionary makes this safe
+
+**Bug #2: Enum values serialized as numbers instead of strings**
+**Problem:**
+- API returned `"type": 0` instead of `"type": "FreeCancellation"`
+- Frontend couldn't display cancellation policies correctly
+- All policies showed as "Flexible" regardless of actual type
+
+**Fix Applied:**
+```csharp
+// Add to Program.cs
+using System.Text.Json.Serialization;
+
+builder.Services.ConfigureHttpJsonOptions(options =>
+{
+    options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
+});
+```
+
+**Why:**
+- ASP.NET Core defaults to numeric enum serialization for performance
+- Frontend needs string enum names for display formatting
+- JsonStringEnumConverter transforms numeric → string representation
+
+**Bug #3: BudgetNests provider had wrong availability flag**
+**Problem:**
+- budget_002 (Economy Stay) had `Available = false`
+- Deluxe room was filtered out of search results
+- Not a retrieval bug, but prevented testing
+
+**Fix Applied:**
+```csharp
+// In BudgetNestsProvider.cs
+new HotelRoom
+{
+    HotelId = "budget_002",
+    // ... other properties
+    Available = true,  // ✅ Changed from false
+}
+```
+
+**Testing Process:**
+1. Searched hotels (POST /hotels/reserve worked)
+2. Tried to view reservation (GET /hotels/reservation/{ref} returned 404)
+3. Debugged: Created new InMemoryReservationStore instance each request
+4. Fixed: Changed AddScoped to AddSingleton
+5. Tested again: Reservation successfully retrieved ✅
+
+**Result:**
+- ✅ Reservations now persist between requests
+- ✅ Cancellation policies display correctly in UI
+- ✅ All hotel rooms from BudgetNests now visible
+- ✅ Complete end-to-end flow works (search → reserve → view confirmation → retrieve reservation)
+
+**Files Modified:**
+- HotelStay.Api/Program.cs (DI registration + enum serialization)
+- HotelStay.Api/Providers/BudgetNestsProvider.cs (Available flag)
+
+**Lessons Learned:**
+- DI container scope matters for stateful services (scoped vs singleton vs transient)
+- Test end-to-end workflows early (not just individual endpoints)
+- Default serialization may not match frontend expectations
+- In-memory storage needs careful lifetime management
+- Enum serialization format significantly impacts frontend parsing logic
 
 ---
 
