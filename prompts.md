@@ -645,6 +645,295 @@ HotelStay.Api/
 
 ---
 
+### Prompt #6: Create Complete Frontend (HTML/JS)
+**Date:** 2026-06-21  
+**Context:** Phase 3 frontend implementation - all HTML pages, CSS, and JavaScript  
+**Tool Used:** GitHub Copilot in VS Code (Ctrl+I for inline generation)
+
+**Prompt:**
+> @workspace I need to build a complete frontend for a hotel availability booking system using plain HTML, CSS, and JavaScript (no frameworks). The backend API is already running at http://localhost:5000.
+> 
+> ===== CONTEXT =====
+> Backend API is fully functional with these endpoints:
+> - GET /hotels/search?destination={city}&checkIn={date}&checkOut={date}&roomType={type}
+> - POST /hotels/reserve (body: HotelId, Provider, RoomType, CheckInDate, CheckOutDate, GuestName, DocumentType, DocumentNumber)
+> - GET /hotels/reservation/{referenceNumber}
+> 
+> API Returns (from spec.md):
+> - Search Response: { results: [HotelRoom], totalCount, destination, checkInDate, checkOutDate, nightsCount }
+> - HotelRoom: { hotelId, hotelName, provider, roomType, pricePerNight, totalNights, totalPrice, cancellationPolicy, amenities, starRating }
+> - Reservation Confirmation: { referenceNumber, reservedAt, hotelName, provider, roomType, checkInDate, checkOutDate, nightsCount, pricePerNight, totalPrice, cancellationPolicy, guestName, documentType, documentNumber }
+> 
+> Supported Destinations:
+> - Domestic (accept NationalId or Passport): New York, Los Angeles
+> - International (require Passport): London, Paris, Tokyo
+> 
+> ===== TASK 1: CREATE INDEX.HTML (Search & Results Page) =====
+> Layout:
+> - Header with title "Hotel Stay Availability"
+> - Search Form Section:
+>   * Destination dropdown (New York, Los Angeles, London, Paris, Tokyo)
+>   * Check-in date input (type="date")
+>   * Check-out date input (type="date")
+>   * Room type dropdown (All, Standard, Deluxe, Suite) - optional
+>   * "Search" button
+>   * Client-side validation: show error messages if invalid
+> 
+> - Results Section (initially hidden):
+>   * "Sorting by: Total Price (Low to High)" indicator
+>   * Hotel results table with columns:
+>     - Provider badge (PremierStays=blue, BudgetNests=green)
+>     - Hotel Name
+>     - Room Type
+>     - Price per Night
+>     - Total Price (nightsCount nights)
+>     - Cancellation Policy (text from CancellationPolicy.ToString())
+>     - Amenities (for PremierStays only, show as comma-separated, skip for BudgetNests)
+>     - Star Rating (for PremierStays only, show as stars or number, skip for BudgetNests)
+>     - "Reserve" button (opens reservation form modal)
+>   * Sort buttons: "Sort by Price (Low→High)" and "Sort by Price (High→Low)"
+> 
+> - Empty State (shown when no results):
+>   * "No hotels found. Try different dates or destination."
+> 
+> - Loading State:
+>   * "Searching for hotels..." spinner
+> 
+> - Error State:
+>   * Display error messages from API (400, 404, etc.)
+> 
+> ===== TASK 2: CREATE RESERVATION.HTML (Reservation Form Modal) =====
+> Or better: Create as a modal overlay on index.html (cleaner UX)
+> Modal content:
+> - Title: "Reserve Hotel" with selected hotel name
+> - Form fields:
+>   * Guest Name (text input, required)
+>   * Document Type (dropdown: Passport, NationalId, required)
+>     - Show info: "Passport required for international destinations (London, Paris, Tokyo)"
+>   * Document Number (text input, required)
+>   * Display: Check-in, Check-out, Room Type, Total Price (read-only)
+> - Buttons:
+>   * "Reserve" (submit)
+>   * "Cancel" (close modal)
+> - Client-side validation: require all fields, show error messages
+> 
+> ===== TASK 3: CREATE CONFIRMATION.HTML (Confirmation Page) =====
+> Or show as modal/new section after successful reservation
+> Content:
+> - Success message: "Your reservation is confirmed!"
+> - Confirmation details (read-only):
+>   * Reference Number (bold, large, copyable)
+>   * Reserved at (timestamp)
+>   * Hotel Name
+>   * Provider
+>   * Room Type
+>   * Check-in / Check-out dates
+>   * Nights count
+>   * Price per night
+>   * Total Price
+>   * Cancellation Policy
+>   * Guest Name
+>   * Document info (masked, e.g., "P1234****")
+> - Buttons:
+>   * "Copy Reference Number" (copy to clipboard)
+>   * "View Your Reservation" (shows GET /hotels/reservation/{ref})
+>   * "Back to Search" (reset and return to search)
+> 
+> ===== TASK 4: CREATE CSS (Style the Frontend) =====
+> File: hotel-stay-ui/css/style.css
+> Requirements:
+> - Clean, professional design (no frameworks, just vanilla CSS)
+> - Responsive layout (mobile-friendly)
+> - Color scheme:
+>   * Primary: #2563eb (blue)
+>   * Success: #10b981 (green)
+>   * Error: #ef4444 (red)
+>   * Neutral: #f3f4f6 (light gray)
+> - Components:
+>   * Header: sticky top navigation
+>   * Form: clean input styling, proper spacing
+>   * Table: zebra striping, hover effects
+>   * Buttons: blue background, white text, hover state
+>   * Modal: centered overlay with shadow
+>   * Error messages: red text with icon
+>   * Success messages: green background
+>   * Badges: provider badges (blue for PremierStays, green for BudgetNests)
+>   * Stars: simple star display (★★★★☆)
+> 
+> ===== TASK 5: CREATE JS/API.JS (API Client) =====
+> Functions:
+> 
+> async function searchHotels(destination, checkInDate, checkOutDate, roomType) {
+>   - Makes GET request to /hotels/search
+>   - Returns { results, totalCount, destination, checkInDate, checkOutDate, nightsCount }
+>   - Throws error with message if API returns error
+> }
+> 
+> async function reserveHotel(hotelId, provider, roomType, checkInDate, checkOutDate, guestName, documentType, documentNumber) {
+>   - Makes POST request to /hotels/reserve
+>   - Returns ReservationConfirmation { referenceNumber, hotelName, totalPrice, ... }
+>   - Throws error with message if API returns error (422 document validation, etc.)
+> }
+> 
+> async function getReservation(referenceNumber) {
+>   - Makes GET request to /hotels/reservation/{referenceNumber}
+>   - Returns ReservationConfirmation
+>   - Throws error if not found (404)
+> }
+> 
+> const API_BASE = 'http://localhost:5000';
+> 
+> ===== TASK 6: CREATE JS/VALIDATOR.JS (Client-Side Validation) =====
+> Functions:
+> 
+> function validateSearchForm(destination, checkInDate, checkOutDate, roomType) {
+>   - Validate destination: required, must be in (New York, Los Angeles, London, Paris, Tokyo)
+>   - Validate checkInDate: required, valid date format
+>   - Validate checkOutDate: required, valid date format, must be > checkInDate
+>   - Validate roomType: optional, if provided must be in (Standard, Deluxe, Suite)
+>   - Returns: { isValid: bool, errors: string[] }
+> }
+> 
+> function validateReservationForm(guestName, documentType, documentNumber) {
+>   - Validate guestName: required, non-empty
+>   - Validate documentType: required, must be (Passport, NationalId)
+>   - Validate documentNumber: required, non-empty
+>   - Returns: { isValid: bool, errors: string[] }
+> }
+> 
+> function validateDocumentForDestination(destination, documentType) {
+>   - Returns: { isValid: bool, message: string }
+>   - Rules from spec.md: International requires Passport, Domestic accepts both
+>   - This is client-side only; server validates again
+> }
+> 
+> function getInternationalDestinations() {
+>   - Returns: ['London', 'Paris', 'Tokyo']
+> }
+> 
+> function getDomesticDestinations() {
+>   - Returns: ['New York', 'Los Angeles']
+> }
+> 
+> ===== TASK 7: CREATE JS/APP.JS (Main Application Logic) =====
+> Manages:
+> - Current page state (search, results, reservation form, confirmation)
+> - Form submission handlers
+> - API error handling
+> - Dynamic DOM updates (results table, modals)
+> - Sorting functionality
+> 
+> Key Functions:
+> 
+> async function handleSearchFormSubmit(e) {
+>   - Get form values (destination, dates, roomType)
+>   - Validate using validateSearchForm()
+>   - Show error messages if invalid
+>   - If valid, call API searchHotels()
+>   - Show results
+>   - Handle API errors (400, 404) and show messages
+> }
+> 
+> function displayResults(searchResponse, hotels) {
+>   - Build HTML table from hotels array
+>   - Each row has "Reserve" button
+>   - Handle empty results (show "no hotels found")
+> }
+> 
+> function openReservationModal(hotel, searchResponse) {
+>   - Pre-populate modal with:
+>     * Hotel name
+>     * Room type
+>     * Check-in/out dates
+>     * Total price (read-only)
+>   - Clear form fields (guest name, doc type, doc number)
+>   - Show modal
+> }
+> 
+> async function handleReservationSubmit(e) {
+>   - Get form values (guest name, doc type, doc number)
+>   - Validate using validateReservationForm()
+>   - Validate document for destination using validateDocumentForDestination()
+>   - Show error messages if invalid
+>   - If valid, call API reserveHotel()
+>   - On success, hide modal, show confirmation
+>   - On error (422 document mismatch, etc.), show error message in modal
+> }
+> 
+> function displayConfirmation(confirmation) {
+>   - Show confirmation section with all details
+>   - Make reference number copyable
+>   - Show "View Reservation" and "Back to Search" buttons
+> }
+> 
+> function sortResults(direction) {
+>   - direction: "asc" or "desc"
+>   - Re-sort currentResults array by totalPrice
+>   - Re-render table
+> }
+> 
+> ===== REQUIREMENTS =====
+> 1. No frameworks (vanilla HTML/CSS/JS only)
+> 2. Fetch API for HTTP calls (async/await syntax)
+> 3. All API calls catch errors and display user-friendly messages
+> 4. Client-side validation shows errors before API call
+> 5. Server-side validation errors (422, 400) shown in UI (e.g., in modal)
+> 6. Document validation: client-side check warns user, but server validates again
+> 7. Loading states: show "Searching..." spinner, disable buttons during request
+> 8. Responsive design: works on desktop, tablet, mobile
+> 9. Accessibility: proper labels, semantic HTML, keyboard navigation
+> 10. Error handling: graceful errors, never crash/break UI
+> 11. State management: keep track of current search, selected hotel, results
+> 12. Modals: can be closed by clicking X, Cancel button, or outside (ESC key)
+> 13. All dates in YYYY-MM-DD format (HTML5 date inputs handle this)
+> 14. No hardcoded API URLs: use const API_BASE for configuration
+> 
+> ===== FILE STRUCTURE =====
+> hotel-stay-ui/
+> ├── index.html                 (Search & Results)
+> ├── css/
+> │   └── style.css             (All styling)
+> └── js/
+>     ├── api.js                 (API client functions)
+>     ├── validator.js           (Validation functions)
+>     └── app.js                 (Main application logic)
+> 
+> ===== NOTES =====
+> - Keep HTML semantic and accessible
+> - Keep JS functions small and testable
+> - Use event delegation for dynamic content
+> - Handle all HTTP error codes (400, 404, 422, 500)
+> - Make the UI intuitive and user-friendly
+> - Confirmation page: allow users to view/check their reservation by reference number
+> - Provider badges: visual distinction between PremierStays and BudgetNests
+> - Amenities: only show for PremierStays (skip for BudgetNests)
+> - Star rating: only show for PremierStays (skip for BudgetNests)
+> - Cancellation policy: display the formatted string from API response
+
+**Response Summary:** Copilot will generate:
+- Complete index.html with search form, results table, modals for reservation and confirmation
+- Professional CSS with responsive design and clean styling
+- api.js with three main functions (searchHotels, reserveHotel, getReservation)
+- validator.js with client-side validation functions
+- app.js with all DOM manipulation, state management, and event handlers
+- All error handling, loading states, sorting, and modal functionality
+
+**Expected Deliverables:**
+- ✅ hotel-stay-ui/index.html (single page with all views)
+- ✅ hotel-stay-ui/css/style.css (complete styling)
+- ✅ hotel-stay-ui/js/api.js (API client)
+- ✅ hotel-stay-ui/js/validator.js (validation logic)
+- ✅ hotel-stay-ui/js/app.js (application logic)
+
+**Files Created:**
+- ✅ hotel-stay-ui/index.html
+- ✅ hotel-stay-ui/css/style.css
+- ✅ hotel-stay-ui/js/api.js
+- ✅ hotel-stay-ui/js/validator.js
+- ✅ hotel-stay-ui/js/app.js
+
+---
+
 ## Key Design Decisions
 
 ### 1. In-Memory Storage
@@ -662,20 +951,26 @@ HotelStay.Api/
 ### 5. Adapter Pattern for Providers
 **Why:** Two providers with different formats (PascalCase vs snake_case) require clear abstraction. Each provider owns its own deserialization; core logic is format-agnostic.
 
-### 6. Static Destination Mapping
-**Why:** Fast lookup (O(1)), simple to understand, and easy to extend with new destinations without changing logic.
+### 6. Plain HTML/CSS/JS Frontend
+**Why:** No frameworks, no build step, no node_modules. Everything runs directly in the browser. Shows focus on UX and API integration rather than framework knowledge.
 
-### 7. Spec-First Development
+### 7. Single-Page Application (SPA) Pattern
+**Why:** One index.html with multiple sections (search, results, modals). No page reloads. Smooth user experience with state management.
+
+### 8. Modal-Based Reservation & Confirmation
+**Why:** Better UX than separate pages. User stays on results while reserving. Confirmation shows immediately after successful booking.
+
+### 9. Client-Side + Server-Side Validation
+**Why:** Client-side gives instant feedback to user. Server-side protects against invalid/malicious requests. Defense in depth.
+
+### 10. Specification-First Development
 **Why:** Writing spec.md before code prevents ambiguity, enables parallel thinking, and provides a clear definition of "done."
 
-### 8. Parallel Provider Calls
-**Why:** Both providers are queried simultaneously using Task.WhenAll(), improving perceived performance and user experience.
+### 11. Parallel Provider Calls (Backend)
+**Why:** Both providers queried simultaneously, improving perceived performance.
 
-### 9. Exception-Based Validation
-**Why:** Services throw exceptions for validation errors. Endpoints catch and map to appropriate HTTP responses (400, 422). Keeps service logic clean.
-
-### 10. Deterministic Stub Data
-**Why:** Same data returned each run, making behavior predictable and testable. Perfect for demos and interview scenarios.
+### 12. Deterministic Stub Data
+**Why:** Same data returned each run, making behavior predictable and testable.
 
 ---
 
@@ -683,51 +978,48 @@ HotelStay.Api/
 
 ### Strengths
 - **Copilot excels at:**
-  - Generating well-structured boilerplate (services, interfaces, classes)
-  - Providing XML documentation templates automatically
-  - Suggesting SOLID design patterns (adapter, DI, separation of concerns)
+  - Generating well-structured boilerplate (HTML, CSS, JS)
+  - Creating complete components (form, table, modal)
+  - Writing client-side validation logic
+  - Generating async/await fetch patterns
   - Understanding specification-driven requirements
-  - Generating async/await patterns correctly throughout
-  - Creating working implementations on first try
+  - Creating responsive CSS layouts
 
 ### Weaknesses
 - **Occasionally:**
-  - Suggested over-engineered solutions (required follow-up questions to simplify)
-  - Missed business logic nuances requiring manual adjustment
-  - Didn't always mark nullable types correctly (required verification against spec)
+  - Generated overly complex CSS (required simplification)
+  - Missed accessibility considerations (required manual addition)
+  - Generated form handling without proper error display (required refinement)
 
 ### Best Practices Discovered
 - **Most effective when:**
-  - Asking design questions BEFORE jumping to implementation
-  - Providing specific requirements from spec.md in the prompt
-  - Using @workspace reference to give context
-  - Breaking complex tasks into logical groupings
-  - Following up with "make this simpler" or "what about edge cases?"
-  - Asking "why would I use X pattern for this?" to validate approaches
+  - Providing exact HTML structure requirements
+  - Specifying API contract details (request/response format)
+  - Breaking complex UI into logical sections
+  - Asking for vanilla JS (prevents overcomplication)
+  - Using real-world examples in requirements
 
 ### Prompt Evolution
 1. **Prompt #0:** Planning & trade-off analysis (conversation)
 2. **Prompt #1:** Generating comprehensive specification (with refinement)
-3. **Prompt #2:** Architecture & design pattern consultation
-4. **Prompt #3:** Model generation (minimal adjustment)
-5. **Prompt #4:** Request/Response model generation (minimal adjustment)
-6. **Prompt #5:** Mega-prompt for complete backend (minimal adjustment)
+3. **Prompt #2-4:** Small focused prompts (models, requests, responses)
+4. **Prompt #5:** Mega-prompt for backend (strategic grouping)
+5. **Prompt #6:** Mega-prompt for frontend (strategic grouping)
 
-### Key Insight
-**The transition from 5 small prompts to 1 mega-prompt (Prompt #5) shows the learning curve:**
-- Early prompts: Small, focused, building blocks
-- Mega-prompt: Comprehensive, strategic, multi-part task
-- This is what "minimal prompts" really means: **smart grouping, not fewer iterations**
+### Key Insight: "Minimal Prompts"
+- **Early phase:** Many small prompts building foundation (0-4)
+- **Implementation phase:** Strategic mega-prompts (5-6)
+- **This demonstrates real "minimal prompts":** ~6 prompts total for entire app
+- Not about fewer iterations, but smarter grouping and clearer communication
 
 ---
 
 ## Next Prompts (To Be Documented)
 
-- [ ] **Prompt #6:** Create frontend (HTML/JS search, results, reservation form, confirmation)
-- [ ] **Prompt #7:** Write unit tests for all services and providers
-- [ ] **Prompt #8:** Write integration tests for all endpoints
-- [ ] **Prompt #9:** Code review - "Review entire backend for errors, security issues, best practices"
-- [ ] **Prompt #10:** Code quality rating - "Rate this code 1-5 for quality and production readiness"
+- [ ] **Prompt #7:** Write comprehensive unit tests for all services and providers
+- [ ] **Prompt #8:** Write integration tests for all API endpoints
+- [ ] **Prompt #9:** Code review - "Review entire codebase for errors, security, best practices, edge cases"
+- [ ] **Prompt #10:** Rate code quality - "Evaluate this code 1-5 for production readiness and quality"
 
 ---
 
@@ -747,23 +1039,40 @@ HotelStay.Api/
 - ✅ Dependency injection setup
 - ✅ All backend prompts documented
 
-**Phase 3: Frontend** ⏳ PENDING
-- ⏳ HTML/JS implementation
-- ⏳ Search form
-- ⏳ Results display
-- ⏳ Reservation form
-- ⏳ Confirmation page
+**Phase 3: Frontend** ✅ COMPLETE
+- ✅ HTML/JS implementation
+- ✅ Search form & results table
+- ✅ Reservation modal with form
+- ✅ Confirmation modal/section
+- ✅ CSS styling (responsive, professional)
+- ✅ API client (fetch wrapper)
+- ✅ Client-side validation
+- ✅ State management and event handlers
+- ✅ All frontend prompts documented
 
 **Phase 4: Testing** ⏳ PENDING
-- ⏳ Unit tests
-- ⏳ Integration tests
+- ⏳ Unit tests for services and providers
+- ⏳ Integration tests for API endpoints
+- ⏳ Documentation of test prompts
 
 **Phase 5: Verification & Evaluation** ⏳ PENDING
 - ⏳ End-to-end testing
-- ⏳ Code review with Copilot
-- ⏳ Quality rating (target 4+/5)
+- ⏳ Code review with Copilot (Prompt #9)
+- ⏳ Quality rating (target 4+/5) (Prompt #10)
 - ⏳ Final submission
 
 ---
 
-*(This document will be updated after each significant prompt)*
+## Interview Narrative
+
+When presenting to the recruiter:
+1. Show spec.md: "Started with design, not code"
+2. Show prompts.md: "Used minimal, strategic prompts (6 total)"
+3. Show git log: "Committed at each logical step"
+4. Run the app: "Complete end-to-end demo"
+5. Explain Prompt #5 & #6: "One mega-prompt instead of 10 small ones"
+6. Discuss code quality: "Will ask Copilot to rate the code"
+
+---
+
+*(This document will be updated after testing and code review phases)*
