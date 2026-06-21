@@ -3,7 +3,6 @@ using Moq;
 using HotelStay.Api.Services;
 using HotelStay.Api.Models;
 using HotelStay.Api.Store;
-using System.Text.RegularExpressions;
 
 namespace HotelStay.Tests.Services;
 

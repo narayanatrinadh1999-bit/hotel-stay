@@ -105,13 +105,13 @@ public class ReservationService : IReservationService
         {
             return documentNumber;
         }
-        return documentNumber.Substring(0, 5) + "****";
+        return documentNumber[..5] + "****";
     }
 
     private static string GenerateReferenceNumber()
     {
         var date = DateTime.UtcNow.ToString("yyyyMMdd");
-        var unique = Guid.NewGuid().ToString("N").Substring(0, 6).ToUpper();
+        var unique = Guid.NewGuid().ToString("N")[..6].ToUpper();
         return $"RES-{date}-{unique}";
     }
 }
