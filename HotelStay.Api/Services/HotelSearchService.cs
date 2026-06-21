@@ -16,8 +16,8 @@ namespace HotelStay.Api.Services
 
         private static readonly HashSet<string> SupportedDestinations = new(StringComparer.OrdinalIgnoreCase)
         {
-            "New York",
-            "Los Angeles",
+            "New Delhi",
+            "Hyderabad",
             "London",
             "Paris",
             "Tokyo"

@@ -15,6 +15,21 @@ namespace HotelStay.Api.Providers
 
         public Task<List<HotelRoom>> SearchAsync(string destination, DateTime checkInDate, DateTime checkOutDate, RoomType? roomType = null)
         {
+            // Only return results for supported destinations
+            var supported = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+            {
+                "New Delhi",
+                "Hyderabad",
+                "London",
+                "Paris",
+                "Tokyo"
+            };
+
+            if (!supported.Contains(destination))
+            {
+                return Task.FromResult(new List<HotelRoom>());
+            }
+
             var now = DateTime.UtcNow;
             var list = new List<HotelRoom>
             {

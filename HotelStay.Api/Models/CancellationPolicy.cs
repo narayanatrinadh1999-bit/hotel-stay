@@ -1,8 +1,12 @@
+using System.Text.Json.Serialization;
+
 namespace HotelStay.Api.Models
 {
     /// <summary>
     /// Types of cancellation policies supported by the unified model.
+    /// Serialized as string values in JSON.
     /// </summary>
+    [JsonConverter(typeof(JsonStringEnumConverter))]
     public enum CancellationPolicyType
     {
         /// <summary>
@@ -53,3 +57,4 @@ namespace HotelStay.Api.Models
         }
     }
 }
+

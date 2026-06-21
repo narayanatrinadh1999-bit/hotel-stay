@@ -67,7 +67,8 @@ namespace HotelStay.Api.Services
             {
                 ReferenceNumber = reference,
                 ReservedAt = DateTime.UtcNow,
-                HotelName = request.HotelId, // HotelName not available in request; store HotelId to help lookup
+                // Prefer a supplied human-friendly hotel name, otherwise fall back to HotelId
+                HotelName = string.IsNullOrWhiteSpace(request.HotelName) ? request.HotelId : request.HotelName,
                 Provider = request.Provider,
                 RoomType = request.RoomType,
                 CheckInDate = request.CheckInDate,
@@ -89,8 +90,9 @@ namespace HotelStay.Api.Services
         private static string MaskDocumentNumber(string doc)
         {
             if (string.IsNullOrEmpty(doc)) return "";
-            if (doc.Length <= 4) return doc + "****";
-            return doc.Substring(0, 4) + "****";
+            // Preserve the first 5 characters (if present) then mask the rest with 4 asterisks
+            if (doc.Length <= 5) return doc + "****";
+            return doc.Substring(0, 5) + "****";
         }
 
         private static string GenerateRandomHex(int length)

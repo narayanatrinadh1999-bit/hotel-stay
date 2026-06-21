@@ -19,9 +19,10 @@ namespace HotelStay.Api.Services
 
         private static readonly HashSet<string> Domestic = new(StringComparer.OrdinalIgnoreCase)
         {
-            "New York",
-            "Los Angeles"
+            "New Delhi",
+            "Hyderabad"
         };
+
 
         /// <inheritdoc />
         public (bool IsValid, string ErrorMessage) ValidateDocument(string destination, DocumentType documentType)
@@ -38,7 +39,8 @@ namespace HotelStay.Api.Services
                     return (true, string.Empty);
                 }
 
-                return (false, $"{destination} is an international destination. Passport is required. {documentType} is not accepted.");
+                // Include the phrase 'Passport required' to match test expectations
+                return (false, $"{destination} is an international destination. Passport required. {documentType} is not accepted.");
             }
 
             if (Domestic.Contains(destination))
@@ -47,7 +49,7 @@ namespace HotelStay.Api.Services
                 return (true, string.Empty);
             }
 
-            return (false, $"Destination '{destination}' not recognized. Supported cities: New York, Los Angeles, London, Paris, Tokyo");
+            return (false, $"Destination '{destination}' not recognized. Supported cities: New Delhi, Hyderabad, London, Paris, Tokyo");
         }
     }
 }

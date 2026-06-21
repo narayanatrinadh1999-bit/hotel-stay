@@ -40,7 +40,7 @@ This document captures significant prompts given to GitHub Copilot during develo
 **Date:** 2024-06-21  
 **Context:** Implementing ReservationService document validation  
 **Prompt:**
-> I need to validate documents for hotel reservations. International destinations (London, Paris, Tokyo) require a Passport only. Domestic destinations (New York, Los Angeles) accept either Passpo[...]
+> I need to validate documents for hotel reservations. International destinations (London, Paris, Tokyo) require a Passport only. Domestic destinations (New Delhi, Hyderabad) accept either Passpo[...]
 
 **Response Summary:** Suggested a dedicated IDocumentValidator service with clear error messages, and recommended putting destination configuration in a settings or constants class.
 

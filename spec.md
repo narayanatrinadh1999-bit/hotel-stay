@@ -318,8 +318,8 @@ public interface IHotelProvider
 ### 3.2 Destination Mapping
 
 **Domestic Cities (accept NationalId or Passport):**
-1. `"New York"` (USA)
-2. `"Los Angeles"` (USA)
+1. `"New Delhi"` (USA)
+2. `"Hyderabad"` (USA)
 
 **International Cities (require Passport):**
 1. `"London"` (UK)
@@ -397,7 +397,7 @@ GET /hotels/search?destination={city}&checkIn={date}&checkOut={date}&roomType={t
 **404 - Destination Not Found:**
 ```json
 {
-  "error": "Destination not recognized. Supported cities: New York, Los Angeles, London, Paris, Tokyo"
+  "error": "Destination not recognized. Supported cities: New Delhi, Hyderabad, London, Paris, Tokyo"
 }
 ```
 
@@ -460,7 +460,7 @@ Content-Type: application/json
 **422 - Document Mismatch (Domestic destination, wrong document):**
 ```json
 {
-  "error": "New York is a domestic destination. Passport or NationalId accepted."
+  "error": "New Delhi is a domestic destination. Passport or NationalId accepted."
 }
 ```
 
@@ -592,7 +592,7 @@ public interface IDocumentValidator
 
 **Logic:**
 - If destination is international (London, Paris, Tokyo) → require Passport
-- If destination is domestic (New York, Los Angeles) → accept NationalId or Passport
+- If destination is domestic (New Delhi, Hyderabad) → accept NationalId or Passport
 - Return clear error message on mismatch
 
 ---

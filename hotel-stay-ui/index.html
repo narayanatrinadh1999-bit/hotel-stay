@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Hotel Stay Availability</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <h1>Hotel Stay Availability</h1>
+    </div>
+  </header>
+
+  <main class="container">
+    <section id="search-form-section" class="search-section" aria-labelledby="search-heading">
+      <h2 id="search-heading">Search for Hotels</h2>
+      <form id="search-form" class="search-form" novalidate>
+        <div class="form-row">
+          <label for="destination">Destination</label>
+          <select id="destination" name="destination" required>
+            <option value="">Select a city</option>
+            <option>New Delhi</option>
+            <option>Hyderabad</option>
+            <option>London</option>
+            <option>Paris</option>
+            <option>Tokyo</option>
+          </select>
+        </div>
+
+        <div class="form-row">
+          <label for="check-in">Check-in</label>
+          <input id="check-in" name="checkIn" type="date" required />
+        </div>
+
+        <div class="form-row">
+          <label for="check-out">Check-out</label>
+          <input id="check-out" name="checkOut" type="date" required />
+        </div>
+
+        <div class="form-row">
+          <label for="room-type">Room type</label>
+          <select id="room-type" name="roomType">
+            <option value="">All</option>
+            <option>Standard</option>
+            <option>Deluxe</option>
+            <option>Suite</option>
+          </select>
+        </div>
+
+        <div class="form-actions">
+          <button id="search-btn" type="submit" class="btn primary">Search</button>
+        </div>
+
+        <div id="search-errors" class="form-errors" aria-live="polite"></div>
+      </form>
+    </section>
+
+    <section id="results-section" class="results-section hidden" aria-live="polite">
+      <div class="results-header">
+        <div class="sort-indicator">Sorting by: <strong id="sort-indicator">Total Price (Low to High)</strong></div>
+        <div class="sort-actions">
+          <button id="sort-asc" class="btn">Sort by Price (Low→High)</button>
+          <button id="sort-desc" class="btn">Sort by Price (High→Low)</button>
+        </div>
+      </div>
+
+      <div id="loading" class="loading hidden">Searching for hotels...</div>
+      <div id="results-error" class="error-message hidden" role="alert"></div>
+
+      <div id="empty-state" class="empty hidden">No hotels found. Try different dates or destination.</div>
+
+      <table id="results-table" class="results-table hidden" aria-describedby="results-count">
+        <thead>
+          <tr>
+            <th>Provider</th>
+            <th>Hotel</th>
+            <th>Room Type</th>
+            <th>Price/Night</th>
+            <th>Total Price</th>
+            <th>Cancellation</th>
+            <th>Amenities</th>
+            <th>Star</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="results-body"></tbody>
+      </table>
+
+      <div id="results-count" class="results-count" aria-hidden="true"></div>
+    </section>
+  </main>
+
+  <!-- Reservation Modal -->
+  <div id="modal-overlay" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-label="Reserve Hotel">
+    <div class="modal">
+      <header class="modal-header">
+        <h3 id="modal-title">Reserve Hotel</h3>
+        <button id="modal-close" class="modal-close" aria-label="Close">×</button>
+      </header>
+      <div class="modal-body">
+        <form id="reservation-form" novalidate>
+          <div class="modal-row">
+            <label>Hotel</label>
+            <div id="modal-hotel-name" class="field-readonly"></div>
+          </div>
+          <div class="modal-row">
+            <label>Room Type</label>
+            <div id="modal-room-type" class="field-readonly"></div>
+          </div>
+          <div class="modal-row">
+            <label>Check-in / Check-out</label>
+            <div id="modal-dates" class="field-readonly"></div>
+          </div>
+          <div class="modal-row">
+            <label>Total Price</label>
+            <div id="modal-total-price" class="field-readonly"></div>
+          </div>
+
+          <div class="modal-row">
+            <label for="guest-name">Guest Name</label>
+            <input id="guest-name" name="guestName" type="text" required />
+          </div>
+
+          <div class="modal-row">
+            <label for="doc-type">Document Type</label>
+            <select id="doc-type" name="documentType" required>
+              <option value="">Select</option>
+              <option>Passport</option>
+              <option>NationalId</option>
+            </select>
+            <div id="doc-info" class="doc-info">Passport required for international destinations (London, Paris, Tokyo)</div>
+          </div>
+
+          <div class="modal-row">
+            <label for="doc-number">Document Number</label>
+            <input id="doc-number" name="documentNumber" type="text" required />
+          </div>
+
+          <div id="reservation-errors" class="form-errors" aria-live="polite"></div>
+
+          <div class="modal-actions">
+            <button id="reserve-btn" type="submit" class="btn primary">Reserve</button>
+            <button id="cancel-btn" type="button" class="btn">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Confirmation Modal -->
+  <div id="confirm-overlay" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-label="Reservation Confirmation">
+    <div class="modal modal-large">
+      <header class="modal-header">
+        <h3>Your reservation is confirmed!</h3>
+        <button id="confirm-close" class="modal-close" aria-label="Close">×</button>
+      </header>
+      <div class="modal-body">
+        <div id="confirmation-content"></div>
+        <div class="modal-actions">
+          <button id="copy-ref" class="btn">Copy Reference Number</button>
+          <button id="view-reservation" class="btn">View Your Reservation</button>
+          <button id="back-to-search" class="btn primary">Back to Search</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script src="js/validator.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

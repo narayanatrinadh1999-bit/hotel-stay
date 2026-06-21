@@ -113,7 +113,7 @@
 > 
 > **Document Validation Rules:**
 > - International destinations (London, Paris, Tokyo) require Passport only
-> - Domestic destinations (New York, Los Angeles, New Delhi, Hyderabad) accept NationalId OR Passport
+> - Domestic destinations (New Delhi, Hyderabad, New Delhi, Hyderabad) accept NationalId OR Passport
 > - Invalid destinations should be handled appropriately
 > 
 > **Test Cases Required:**
@@ -126,11 +126,11 @@
 >    - Expected: (IsValid=false, ErrorMessage includes "Passport required")
 > 
 > 3. ValidateDocument_DomesticDestination_NationalId_ReturnsValid
->    - Destination: "New York", DocumentType: NationalId
+>    - Destination: "New Delhi", DocumentType: NationalId
 >    - Expected: (IsValid=true, ErrorMessage=null)
 > 
 > 4. ValidateDocument_DomesticDestination_Passport_ReturnsValid
->    - Destination: "New York", DocumentType: Passport
+>    - Destination: "New Delhi", DocumentType: Passport
 >    - Expected: (IsValid=true, ErrorMessage=null)
 > 
 > 5. ValidateDocument_AllInternationalDestinations_Passport_ReturnsValid
@@ -139,7 +139,7 @@
 >    - Expected: all should be valid
 > 
 > 6. ValidateDocument_AllDomesticDestinations_NationalId_ReturnsValid
->    - Test New York, Los Angeles, New Delhi, Hyderabad with NationalId
+>    - Test New Delhi, Hyderabad, New Delhi, Hyderabad with NationalId
 >    - Use [Theory] with InlineData for each
 >    - Expected: all should be valid
 > 
@@ -285,7 +285,7 @@
 >    - Expected: throws InvalidOperationException with "Passport required" message
 > 
 > 6. ReserveAsync_DomesticDestination_NationalId_Succeeds
->    - Input: destination="New York", documentType=NationalId
+>    - Input: destination="New Delhi", documentType=NationalId
 >    - Expected: reservation succeeds, returns confirmation
 > 
 > 7. ReserveAsync_StoresReservationInStore
@@ -422,7 +422,7 @@
 >     - Expected: status 200, reservation succeeds
 > 
 > 18. ReserveHotel_DomesticDestination_NationalIdProvided_Returns200
->     - Destination: New York, DocumentType: NationalId
+>     - Destination: New Delhi, DocumentType: NationalId
 >     - Expected: status 200, reservation succeeds
 > 
 > 19. ReserveHotel_DocumentNumberMasked

@@ -18,6 +18,11 @@ namespace HotelStay.Api.Models
         public string HotelId { get; set; }
 
         /// <summary>
+        /// Human-friendly hotel name (optional). When provided, this will be stored in the reservation confirmation.
+        /// </summary>
+        public string HotelName { get; set; }
+
+        /// <summary>
         /// Provider name ("PremierStays" or "BudgetNests").
         /// </summary>
         public string Provider { get; set; }

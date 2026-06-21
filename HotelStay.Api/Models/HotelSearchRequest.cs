@@ -9,7 +9,7 @@ namespace HotelStay.Api.Models
     {
         /// <summary>
         /// Destination city name (case-insensitive). Required.
-        /// Examples: "London", "New York".
+        /// Examples: "London", "New Delhi".
         /// </summary>
         public string Destination { get; set; }
 

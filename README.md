@@ -117,7 +117,7 @@ GET /hotels/search?destination={city}&checkIn={YYYY-MM-DD}&checkOut={YYYY-MM-DD}
 ```
 
 **Parameters:**
-- `destination` (required): City name (e.g., "London", "New York")
+- `destination` (required): City name (e.g., "London", "New Delhi")
 - `checkIn` (required): Check-in date in YYYY-MM-DD format
 - `checkOut` (required): Check-out date in YYYY-MM-DD format
 - `roomType` (optional): "Standard", "Deluxe", or "Suite"
@@ -159,8 +159,8 @@ http://localhost:5000/hotels/reservation/RES-20240621-A1B2C3
 ## Supported Destinations
 
 ### Domestic (Accept NationalId or Passport)
-- New York (USA)
-- Los Angeles (USA)
+- New Delhi (India)
+- Hyderabad (India)
 
 ### International (Require Passport)
 - London (UK)
