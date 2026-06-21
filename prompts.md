@@ -236,13 +236,13 @@ This document captures significant prompts given to GitHub Copilot during develo
 > **Fix needed:**
 > - Add click event listener to #back-to-search button
 > - Click handler should:
->   1. Hide confirmation modal
->   2. Hide reservation modal
->   3. Clear currentResults array
->   4. Hide results section
->   5. Show search form section
->   6. Clear/reset search form
->   7. Clear confirmation content display
+> >   1. Hide confirmation modal
+> >   2. Hide reservation modal
+> >   3. Clear currentResults array
+> >   4. Hide results section
+> >   5. Show search form section
+> >   6. Clear/reset search form
+> >   7. Clear confirmation content display
 > 
 > **Files to check/fix:**
 > - hotel-stay-ui/index.html - verify #confirm-overlay has `hidden` class
@@ -277,6 +277,99 @@ This document captures significant prompts given to GitHub Copilot during develo
 - Modal visibility needs to be managed strictly in JavaScript
 - Event listener for "Back to Search" button must reset complete application state
 - Form reset() method is essential for clearing input fields
+
+---
+
+### Prompt #8: Fix Backend Bugs - DI Container & Enum Serialization
+**Date:** 2026-06-21  
+**Context:** Testing backend API with frontend, discovering critical bugs in service registration and JSON serialization  
+**Issues Found:** 3 bugs preventing reservations from being retrieved
+
+**Bug #1: IReservationStore registered with AddScoped instead of AddSingleton**
+**Problem:** 
+- In-memory reservations were being lost between requests
+- Each HTTP request created a new ConcurrentDictionary instance
+- POST /hotels/reserve saved to instance A
+- GET /hotels/reservation/{ref} looked in instance B (different instance)
+- Result: Always returned 404 "Reservation not found"
+
+**Fix Applied:**
+```csharp
+// BEFORE (❌ WRONG):
+builder.Services.AddScoped<IReservationStore, InMemoryReservationStore>();
+
+// AFTER (✅ CORRECT):
+builder.Services.AddSingleton<IReservationStore, InMemoryReservationStore>();
+```
+
+**Why:** 
+- `AddScoped` = new instance per request (perfect for stateless services)
+- `AddSingleton` = single instance for app lifetime (required for shared state)
+- For in-memory storage to persist across requests, must use AddSingleton
+- Thread-safe ConcurrentDictionary makes this safe
+
+**Bug #2: Enum values serialized as numbers instead of strings**
+**Problem:**
+- API returned `"type": 0` instead of `"type": "FreeCancellation"`
+- Frontend couldn't display cancellation policies correctly
+- All policies showed as "Flexible" regardless of actual type
+
+**Fix Applied:**
+```csharp
+// Add to Program.cs
+using System.Text.Json.Serialization;
+
+builder.Services.ConfigureHttpJsonOptions(options =>
+{
+    options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
+});
+```
+
+**Why:**
+- ASP.NET Core defaults to numeric enum serialization for performance
+- Frontend needs string enum names for display formatting
+- JsonStringEnumConverter transforms numeric → string representation
+
+**Bug #3: BudgetNests provider had wrong availability flag**
+**Problem:**
+- budget_002 (Economy Stay) had `Available = false`
+- Deluxe room was filtered out of search results
+- Not a retrieval bug, but prevented testing
+
+**Fix Applied:**
+```csharp
+// In BudgetNestsProvider.cs
+new HotelRoom
+{
+    HotelId = "budget_002",
+    // ... other properties
+    Available = true,  // ✅ Changed from false
+}
+```
+
+**Testing Process:**
+1. Searched hotels (POST /hotels/reserve worked)
+2. Tried to view reservation (GET /hotels/reservation/{ref} returned 404)
+3. Debugged: Created new InMemoryReservationStore instance each request
+4. Fixed: Changed AddScoped to AddSingleton
+5. Tested again: Reservation successfully retrieved ✅
+
+**Result:**
+- ✅ Reservations now persist between requests
+- ✅ Cancellation policies display correctly in UI
+- ✅ All hotel rooms from BudgetNests now visible
+- ✅ Complete end-to-end flow works (search → reserve → view confirmation → retrieve reservation)
+
+**Files Modified:**
+- HotelStay.Api/Program.cs (DI registration + enum serialization)
+- HotelStay.Api/Providers/BudgetNestsProvider.cs (Available flag)
+
+**Lessons Learned:**
+- DI container scope matters for stateful services (scoped vs singleton vs transient)
+- Test end-to-end workflows early (not just individual endpoints)
+- Default serialization may not match frontend expectations
+- In-memory storage needs careful lifetime management
+- Enum serialization format significantly impacts frontend parsing logic
 
 ---
 
